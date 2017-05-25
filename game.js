@@ -75,11 +75,14 @@ class Level {
     constructor(grid = [], actors = []) {
         this.grid = grid.slice();
         this.actors = actors.slice();
-        this.player = new Player();
         this.height = this.grid.length;
         this.width = (this.grid[0]) ? this.grid[0].length : 0;
         this.status = null;
         this.finishDelay = 1;
+    }
+
+    get player() {
+        return this.actors.filter(actor => actor.type === 'player')[0];
     }
 
     isFinished() {
@@ -99,6 +102,11 @@ class Level {
         if (pos.plus(size).x > this.width) return 'wall';
         if (pos.y < 0) return 'wall';
         if (pos.plus(size).y > this.height) return 'lava';
+        for (let y of this.grid) {
+            for (let x of y) {
+                if (x) return x;
+            }
+        }
 
     }
 
@@ -108,10 +116,18 @@ class Level {
 
     noMoreActors(type) {
         if (this.actors.length === 0) return true;
+        for (let actor of this.actors) {
+            if (actor.type === type) return false;
+        }
+        return true;
     }
 
     playerTouched(type, actor) {
         if (type === 'lava'|| 'fireball') this.status = 'lost';
+        if ((type === 'coin') && actor) {
+            this.removeActor(actor);
+            if (this.noMoreActors('coin')) this.status = 'won';
+        }
     }
 }
 
@@ -161,23 +177,6 @@ class LevelParser {
         return new Level(grid, actors);
     }
 }
-
-const plan = [
-    ' @ ',
-    'x!x'
-];
-
-const actorsDict = Object.create(null);
-actorsDict['@'] = Actor;
-
-const parser = new LevelParser(actorsDict);
-const level = parser.parse(plan);
-
-level.grid.forEach((line, y) => {
-    line.forEach((cell, x) => console.log(`(${x}:${y}) ${cell}`));
-});
-
-level.actors.forEach(actor => console.log(`(${actor.pos.x}:${actor.pos.y}) ${actor.type}`));
 
 class Fireball extends Actor {
     constructor(pos = new Vector(), speed = new Vector()) {
@@ -243,4 +242,15 @@ class Coin extends Actor {
     getNextPosition(time) {}
 
     act(time) {}
+}
+
+const grid = [
+    new Array(3),
+    ['wall', 'wall', 'lava']
+];
+const level = new Level(grid);
+for (let y of grid) {
+    for (let x of y) {
+        level.obstacleAt(new Vector(x, y), new Vector(1, 1));
+    }
 }
