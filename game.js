@@ -59,18 +59,6 @@ class Actor {
     }
 }
 
-class Player extends Actor {
-    constructor(pos) {
-        super(pos);
-        this.pos = this.pos.plus(new Vector(0, -.5));
-        this.size = new Vector(.8, 1.5);
-    }
-
-    get type() {
-        return 'player';
-    }
-}
-
 class Level {
     constructor(grid = [], actors = []) {
         this.grid = grid.slice();
@@ -107,7 +95,6 @@ class Level {
                 if (x) return x;
             }
         }
-
     }
 
     removeActor(actor) {
@@ -180,7 +167,8 @@ class LevelParser {
 
 class Fireball extends Actor {
     constructor(pos = new Vector(), speed = new Vector()) {
-        super(pos, speed);
+        super(pos);
+        this.speed = speed;
         this.size = new Vector(1, 1);
     }
 
@@ -188,11 +176,23 @@ class Fireball extends Actor {
         return 'fireball';
     }
 
-    getNextPosition(time = 1) {}
+    getNextPosition(time = 1) {
+        return this.pos.plus(this.speed.times(time));
+    }
 
-    handleObstacle() {}
+    handleObstacle() {
+        this.speed = this.speed.times(-1);
+    }
 
-    act(time, level) {}
+    act(time, level) {
+        const   next = this.getNextPosition(time),
+                obstacle = level.obstacleAt(next, this.size);
+        if (obstacle) {
+            this.handleObstacle();
+        } else {
+            this.pos = next;
+        }
+    }
 }
 
 class HorizontalFireball extends Fireball {
@@ -214,8 +214,13 @@ class VerticalFireball extends Fireball {
 class FireRain extends VerticalFireball {
     constructor(pos) {
         super(pos);
+        this.start = pos;
         this.speed = new Vector(0, 3);
         this.size = new Vector(1, 1);
+    }
+
+    handleObstacle() {
+        this.pos = this.start;
     }
 }
 
@@ -237,20 +242,28 @@ class Coin extends Actor {
         this.spring += this.springSpeed * time;
     }
 
-    getSpringVector() {}
+    getSpringVector() {
+        return new Vector(0, Math.sin(this.spring) * this.springDist);
+    }
 
-    getNextPosition(time) {}
+    getNextPosition(time = 1) {
+        this.spring += this.springSpeed * time;
+        return this.pos.plus(this.getSpringVector());
+    }
 
-    act(time) {}
+    act(time) {
+        this.pos = this.getNextPosition(time);
+    }
 }
 
-const grid = [
-    new Array(3),
-    ['wall', 'wall', 'lava']
-];
-const level = new Level(grid);
-for (let y of grid) {
-    for (let x of y) {
-        level.obstacleAt(new Vector(x, y), new Vector(1, 1));
+class Player extends Actor {
+    constructor(pos) {
+        super(pos);
+        this.pos = this.pos.plus(new Vector(0, -.5));
+        this.size = new Vector(.8, 1.5);
+    }
+
+    get type() {
+        return 'player';
     }
 }
