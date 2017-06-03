@@ -149,8 +149,12 @@ class LevelParser {
             scheme.forEach((string, y) => {
                 string.split('').forEach((symbol, x) => {
                     if (symbol in this.dict) {
-                        const actor = new this.dict[symbol](new Vector(x, y));
-                        actors.push(actor);
+                        try {
+                            const actor = new this.dict[symbol](new Vector(x, y));
+                            if (actor instanceof(Actor)) actors.push(actor);
+                        } catch(err) {
+                            return false;
+                        }
                     }
                 });
             });
