@@ -222,17 +222,13 @@ class FireRain extends Fireball {
     }
 }
 
-function getRandom(min, max) {
-	return Math.floor(Math.random() * (max - min)) + min;
-}
-
 class Coin extends Actor {
     constructor(pos) {
         super(pos, new Vector(.6, .6));
         this.pos = this.pos.plus(new Vector(.2, .1));
         this.springSpeed = 8;
         this.springDist = .07;
-        this.spring = getRandom(0.2, Math.PI);
+        this.spring = rand(Math.PI, 0.2);
     }
 
     get type() {
