@@ -63,17 +63,9 @@ class Level {
         this.grid = [].concat(grid);
         this.actors = [].concat(actors);
         this.height = this.grid.length;
+        this.width = grid.reduce((width, line) => line.length > width ? line.length : width, 0);
         this.status = null;
         this.finishDelay = 1;
-    }
-
-    get width() {
-    	if (this.height > 0) {
-		    const max = this.grid.reduce((a, b) => a.length > b.length ? a : b);
-		    return max.length;
-	    } else {
-    		return 0;
-	    }
     }
 
     get player() {
@@ -91,15 +83,20 @@ class Level {
     }
 
     obstacleAt(pos, size) {
-        if (pos.x < 0) return 'wall';
-        if (pos.plus(size).x > this.width) return 'wall';
-        if (pos.y < 0) return 'wall';
-        if (pos.plus(size).y > this.height) return 'lava';
-        for (let y of this.grid) {
-            for (let x of y) {
-                if (x) return x;
-            }
-        }
+    	const   xStart = Math.floor(pos.x),
+                yStart = Math.floor(pos.y),
+	            xEnd = Math.ceil(pos.x + size.x),
+                yEnd = Math.ceil(pos.y +size.y);
+
+        if (xStart < 0) return 'wall'; //левая граница уровня
+        if (xEnd > this.width) return 'wall'; //правая граница уровня
+        if (yStart < 0) return 'wall'; //верхняя граница уровня
+        if (yEnd > this.height) return 'lava'; //нижняя граница уровня
+	    for (let y = yStart; y < yEnd; y++) {
+		    for (let x = xStart; x < xEnd; x++) {
+			    if (this.grid[y][x] !== undefined) return this.grid[y][x];
+		    }
+	    }
     }
 
     removeActor(actor) {
@@ -280,7 +277,7 @@ class Player extends Actor {
         return 'player';
     }
 }
-/*const   actors = {
+const   actors = {
             '@': Player,
             'o': Coin,
             '=': HorizontalFireball,
@@ -289,25 +286,6 @@ class Player extends Actor {
         },
         parser = new LevelParser(actors);
 loadLevels()
-    .then(plans => runGame(plans, parser, DOMDisplay))
-    .then(() => alert(`The End`));
-*/
-const schema = [
-	'         ',
-	'         ',
-	'    =    ',
-	'       o ',
-	' @   !xxx',
-	'         ',
-	'xxx!     ',
-	'         '
-];
-const actorDict = {
-	'@': Player,
-	'=': HorizontalFireball,
-	'o': Coin
-}
-const parser = new LevelParser(actorDict);
-const level = parser.parse(schema);
-runLevel(level, DOMDisplay)
-	.then(status => console.log(`Игрок ${status}`));
+	.then(plans => runGame(JSON.parse(plans), parser, DOMDisplay))
+	.then(() => alert('Вы выиграли приз!'))
+	.catch(err => alert(err));
