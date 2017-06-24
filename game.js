@@ -222,6 +222,10 @@ class FireRain extends Fireball {
     }
 }
 
+function rand(max = 10, min = 0) {
+	return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 class Coin extends Actor {
     constructor(pos) {
         super(pos, new Vector(.6, .6));
