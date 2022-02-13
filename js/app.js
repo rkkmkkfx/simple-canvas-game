@@ -5,7 +5,7 @@ function loadLevels() {
     const xhr = new XMLHttpRequest();
     let url = './levels.json';
     if (location.hostname !== 'localhost') {
-      url = 'https://raw.githubusercontent.com/rkkmkkfx/netology.ru-JS-3/master/levels.json';
+      url = 'https://raw.githubusercontent.com/rkkmkkfx/simple-canvas-game/master/levels.json';
     }
     xhr.open('GET', url);
     xhr.addEventListener('error', e => fail(xhr));
